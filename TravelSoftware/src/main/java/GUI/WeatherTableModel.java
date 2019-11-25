@@ -13,15 +13,27 @@ import javax.swing.table.AbstractTableModel;
  *
  * @author johannesriedmueller
  */
-public class WeatherTableModel extends AbstractTableModel{
+public class WeatherTableModel extends AbstractTableModel {
+
     private ArrayList<Destination> destinations = new ArrayList<>();
-    private static final String[] colnames = {"City","Pressure", "Humidity", "Temp", ""};
+    private static final String[] colnames = {"City", "Pressure", "Humidity", "Temp", ""};
 
     public void add(Destination destination) {
         destinations.add(destination);
-        fireTableRowsInserted(destinations.size()-1, destinations.size()-1);
+        fireTableRowsInserted(destinations.size() - 1, destinations.size() - 1);
     }
-    
+
+    public void edit(Destination destination, int index) {
+        destinations.remove(index);
+        destinations.add(index, destination);
+        fireTableDataChanged();
+    }
+
+    public void remove(int index) {
+        destinations.remove(index);
+        fireTableDataChanged();
+    }
+
     @Override
     public int getRowCount() {
         return destinations.size();
@@ -41,7 +53,5 @@ public class WeatherTableModel extends AbstractTableModel{
     public String getColumnName(int column) {
         return colnames[column];
     }
-    
-    
-    
+
 }

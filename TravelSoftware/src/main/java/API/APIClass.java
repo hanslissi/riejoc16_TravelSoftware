@@ -30,7 +30,7 @@ public class APIClass {
         this.target = client.target(URI).path(PATH).queryParam("APPID", APPID);
     }
 
-    public APIClass getInstance() {
+    public static synchronized APIClass getInstance() {
         if (instance == null) {
             instance = new APIClass();
         }
@@ -41,9 +41,16 @@ public class APIClass {
         return client.target(URI).path(PATH)
                 .queryParam("APPID", APPID)
                 .queryParam("q", cityName)
+                .queryParam("units", "metric")
                 .request(MediaType.APPLICATION_JSON)
                 .get();
     }
 
+    public static boolean httpResponseIsOk(Response response) {
+        if(response.getStatus() == 200) {
+            return true;
+        }
+        return false;
+    }
     
 }

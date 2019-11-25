@@ -13,38 +13,25 @@ import Enums.WeatherType;
  */
 public class Destination {
     private String cityName;
-    private float humidity;
-    private float pressure;
-    private float temperature;
+    private WeatherInformation weatherInfo;
     private WeatherType weatherType;
 
-    public Destination(String cityName, float humidity, float preassure, float temperature, WeatherType weatherType) {
+    public Destination(String cityName, WeatherInformation weatherInfo, WeatherType weatherType) {
         this.cityName = cityName;
-        this.humidity = humidity;
-        this.pressure = preassure;
-        this.temperature = temperature;
+        this.weatherInfo = weatherInfo;
         this.weatherType = weatherType;
     }
 
     public String getCityName() {
         return cityName;
     }
-
-    public float getHumidity() {
-        return humidity;
-    }
-
-    public float getPressure() {
-        return pressure;
-    }
-
-    public float getTemperature() {
-        return temperature;
-    }
-
+    
     public WeatherType getWeatherType() {
         return weatherType;
     }
-    
+
+    public WeatherInformation getWeatherInfo() {
+        return weatherInfo;
+    }
     
 }

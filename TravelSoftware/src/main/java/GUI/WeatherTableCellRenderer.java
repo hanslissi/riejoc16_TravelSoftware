@@ -6,7 +6,7 @@
 package GUI;
 
 import Data.Destination;
-import Enums.WeatherType;
+import Data.WeatherInformation;
 import java.awt.Color;
 import java.awt.Component;
 import javax.swing.JLabel;
@@ -33,18 +33,19 @@ public class WeatherTableCellRenderer implements TableCellRenderer {
             if (column == 4) {
                 label.setIcon(dest.getWeatherType().getIcon());
             } else {
+                WeatherInformation weatherInfo = dest.getWeatherInfo();
                 switch (column) {
                     case 0:
                         label.setText(dest.getCityName());
                         break;
                     case 1:
-                        label.setText("" + dest.getPressure());
+                        label.setText(weatherInfo.getPressure() + " mBar");
                         break;
                     case 2:
-                        label.setText("" + dest.getHumidity());
+                        label.setText(weatherInfo.getHumidity() + " %");
                         break;
                     case 3:
-                        label.setText("" + dest.getTemperature());
+                        label.setText(weatherInfo.getTemp() + " °C");
                         break;
                     default:
                         label.setText("???");
