@@ -26,7 +26,7 @@ public class PlandayDialog extends javax.swing.JDialog {
     public PlandayDialog(java.awt.Frame parent, boolean modal) {
         super(parent, modal);
         initComponents();
-        for (int i = 0; i < 5; i++) {
+        for (int i = 1; i < 5; i++) {
             cbDate.addItem(LocalDate.now().plusDays(i).format(dtf));
         }
     }

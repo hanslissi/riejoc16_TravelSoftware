@@ -69,6 +69,7 @@ public class WeatherForecast extends javax.swing.JFrame {
                 tempSum = 0.0f;
                 pressureSum = 0;
                 humiditySum = 0;
+                dateCounter = 0;
             }
             dateCounter++;
             oldDate = currentDate;

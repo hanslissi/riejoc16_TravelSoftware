@@ -45,7 +45,7 @@ public class WeatherTableCellRenderer implements TableCellRenderer {
                         label.setText(weatherInfo.getHumidity() + " %");
                         break;
                     case 3:
-                        label.setText(weatherInfo.getTemp() + " °C");
+                        label.setText(String.format("%.2f °C",weatherInfo.getTemp()));
                         break;
                     default:
                         label.setText("???");

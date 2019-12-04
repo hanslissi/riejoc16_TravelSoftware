@@ -22,17 +22,34 @@ public class WeatherTableModel extends AbstractTableModel {
         destinations.add(destination);
         fireTableRowsInserted(destinations.size() - 1, destinations.size() - 1);
     }
+    
+    public void addAllAndClearOld(ArrayList<Destination> destinations) {
+        this.destinations.clear();
+        this.destinations.addAll(destinations);
+        fireTableDataChanged();
+    }
 
     public void edit(Destination destination, int index) {
         destinations.remove(index);
         destinations.add(index, destination);
         fireTableDataChanged();
     }
+    
+    public ArrayList<Destination> getAllDestinations() {
+        ArrayList<Destination> destinations = new ArrayList<>();
+        destinations.addAll(this.destinations);
+        return destinations;
+    }
 
     public ArrayList<Destination> getDestinations() {
         return destinations;
     }
 
+    public void clearAll() {
+        destinations.clear();
+        fireTableDataChanged();
+    }
+    
     public void remove(int index) {
         destinations.remove(index);
         fireTableDataChanged();
@@ -57,5 +74,6 @@ public class WeatherTableModel extends AbstractTableModel {
     public String getColumnName(int column) {
         return colnames[column];
     }
+
 
 }

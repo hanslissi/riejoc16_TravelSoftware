@@ -8,15 +8,20 @@ package GUI;
 import API.APIClass;
 import API.WeatherInfoDeserializer;
 import Data.Destination;
+import Data.ForecastInformation;
 import Data.WeatherInformation;
 import Enums.WeatherType;
 import XML.XMLAccess;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.google.gson.JsonObject;
+import com.google.gson.reflect.TypeToken;
 import java.io.IOException;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.JOptionPane;
@@ -30,13 +35,21 @@ import org.jdom2.JDOMException;
 public class MainWeatherDisplay extends javax.swing.JFrame {
 
     private WeatherTableModel weatherModel = new WeatherTableModel();
+    private ArrayList<Destination> destinationBuffer = new ArrayList<>();
     private LocalDate travelDay = LocalDate.now();
-    
+
+    private static DateTimeFormatter dtf;
+
+    static {
+        dtf = DateTimeFormatter.ofPattern("dd.MM.yyyy");
+    }
+
     public MainWeatherDisplay() {
         initComponents();
         taWeather.setModel(weatherModel);
         taWeather.setRowHeight(128);
         taWeather.setDefaultRenderer(Object.class, new WeatherTableCellRenderer());
+        taWeather.setAutoCreateRowSorter(true);
     }
 
     /**
@@ -51,10 +64,11 @@ public class MainWeatherDisplay extends javax.swing.JFrame {
         pmDestination = new javax.swing.JPopupMenu();
         miDelete = new javax.swing.JMenuItem();
         miEdit = new javax.swing.JMenuItem();
+        btChangeToToday = new javax.swing.JToggleButton();
         jPanel1 = new javax.swing.JPanel();
         btAdd = new javax.swing.JButton();
         btPlan = new javax.swing.JButton();
-        jPanel2 = new javax.swing.JPanel();
+        panelWeather = new javax.swing.JPanel();
         jLabel1 = new javax.swing.JLabel();
         laDate = new javax.swing.JLabel();
         jScrollPane1 = new javax.swing.JScrollPane();
@@ -79,6 +93,13 @@ public class MainWeatherDisplay extends javax.swing.JFrame {
             }
         });
         pmDestination.add(miEdit);
+
+        btChangeToToday.setText("Change to Today");
+        btChangeToToday.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btChangeToTodayActionPerformed(evt);
+            }
+        });
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         addWindowListener(new java.awt.event.WindowAdapter() {
@@ -111,17 +132,17 @@ public class MainWeatherDisplay extends javax.swing.JFrame {
 
         getContentPane().add(jPanel1, java.awt.BorderLayout.PAGE_END);
 
-        jPanel2.setPreferredSize(new java.awt.Dimension(400, 50));
-        jPanel2.setLayout(new java.awt.GridLayout(1, 2));
+        panelWeather.setPreferredSize(new java.awt.Dimension(400, 50));
+        panelWeather.setLayout(new java.awt.GridLayout(1, 3));
 
         jLabel1.setHorizontalAlignment(javax.swing.SwingConstants.RIGHT);
         jLabel1.setText("Weather of: ");
-        jPanel2.add(jLabel1);
+        panelWeather.add(jLabel1);
 
         laDate.setText("Today");
-        jPanel2.add(laDate);
+        panelWeather.add(laDate);
 
-        getContentPane().add(jPanel2, java.awt.BorderLayout.PAGE_START);
+        getContentPane().add(panelWeather, java.awt.BorderLayout.PAGE_START);
 
         taWeather.setModel(new javax.swing.table.DefaultTableModel(
             new Object [][] {
@@ -175,7 +196,7 @@ public class MainWeatherDisplay extends javax.swing.JFrame {
             JOptionPane.showMessageDialog(null, "City not found...");
         }
     }
-    
+
     private void saveDestinations() {
         try {
             XMLAccess access = XMLAccess.getInstance();
@@ -187,6 +208,45 @@ public class MainWeatherDisplay extends javax.swing.JFrame {
         }
     }
 
+    private void loadWeatherFromSpecificDate(LocalDate travelDay) {
+        for (Destination destination : destinationBuffer) {
+            Response response = APIClass.getInstance().getForecastOf(destination.getCityName());
+            if (APIClass.getInstance().httpResponseIsOk(response)) {
+                String responseString = response.readEntity(String.class);
+
+                Gson gson = new Gson();
+                JsonObject forecastJsonObject = gson.fromJson(responseString, JsonObject.class);
+                java.lang.reflect.Type listType = new TypeToken<ArrayList<ForecastInformation>>() {
+                }.getType();
+                List<ForecastInformation> forecastInfosHours = new Gson().fromJson(forecastJsonObject.get("list"), listType);
+                weatherModel.add(getWeatherOfDate(forecastInfosHours, travelDay, destination.getCityName()));
+            }
+        }
+    }
+
+    private Destination getWeatherOfDate(List<ForecastInformation> forecastInfos, LocalDate travelDate, String cityName) {
+        int dateCounter = 0;
+        float tempSum = 0.0f;
+        int pressureSum = 0;
+        int humiditySum = 0;
+        Destination destination = null;
+        for (ForecastInformation forecastInfo : forecastInfos) {
+            if (forecastInfo.getDateTime().getDayOfMonth() == travelDate.getDayOfMonth()) {
+                dateCounter++;
+                tempSum += forecastInfo.getWeatherInfo().getTemp();
+                pressureSum += forecastInfo.getWeatherInfo().getPressure();
+                humiditySum += forecastInfo.getWeatherInfo().getHumidity();
+            } else if (forecastInfo.getDateTime().getDayOfMonth() == travelDate.plusDays(1).getDayOfMonth()) {
+                float avgTemp = tempSum / dateCounter;
+                int avgPressure = pressureSum / dateCounter;
+                int avgHumidity = humiditySum / dateCounter;
+                destination = new Destination(cityName, new WeatherInformation(avgTemp, avgPressure, avgHumidity), WeatherType.CLOUDY);
+                break;
+            }
+        }
+        return destination;
+    }
+
     private void btAddActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btAddActionPerformed
         String cityName = JOptionPane.showInputDialog("Name of city:");
         addCity(cityName);
@@ -196,9 +256,13 @@ public class MainWeatherDisplay extends javax.swing.JFrame {
         PlandayDialog dialog = new PlandayDialog(this, true);
         dialog.setAlwaysOnTop(true);
         dialog.setVisible(true);
-        if(dialog.isOk()) {
+        if (dialog.isOk()) {
             travelDay = dialog.getDayChosen();
-            laDate.setText(travelDay.format(DateTimeFormatter.ofPattern("dd.MM.yyyy")));
+            laDate.setText(travelDay.format(dtf));
+            destinationBuffer = weatherModel.getAllDestinations();
+            weatherModel.clearAll();
+            panelWeather.add(btChangeToToday);
+            loadWeatherFromSpecificDate(travelDay);
         }
     }//GEN-LAST:event_btPlanActionPerformed
 
@@ -251,7 +315,7 @@ public class MainWeatherDisplay extends javax.swing.JFrame {
     }//GEN-LAST:event_formWindowOpened
 
     private void taWeatherMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_taWeatherMouseClicked
-        if(evt.getClickCount() == 2) {
+        if (evt.getClickCount() == 2) {
             Destination selectedDest = (Destination) weatherModel.getValueAt(taWeather.getSelectedRow(), 0);
             WeatherForecast forecast = new WeatherForecast(selectedDest);
             forecast.setVisible(true);
@@ -261,6 +325,13 @@ public class MainWeatherDisplay extends javax.swing.JFrame {
     private void formWindowClosing(java.awt.event.WindowEvent evt) {//GEN-FIRST:event_formWindowClosing
         saveDestinations();
     }//GEN-LAST:event_formWindowClosing
+
+    private void btChangeToTodayActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btChangeToTodayActionPerformed
+        this.travelDay = LocalDate.now();
+        weatherModel.addAllAndClearOld(destinationBuffer);
+        laDate.setText("Today");
+        panelWeather.remove(btChangeToToday);
+    }//GEN-LAST:event_btChangeToTodayActionPerformed
 
     /**
      * @param args the command line arguments
@@ -299,19 +370,21 @@ public class MainWeatherDisplay extends javax.swing.JFrame {
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton btAdd;
+    private javax.swing.JToggleButton btChangeToToday;
     private javax.swing.JButton btPlan;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JMenu jMenu2;
     private javax.swing.JMenuBar jMenuBar1;
     private javax.swing.JPanel jPanel1;
-    private javax.swing.JPanel jPanel2;
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JLabel laDate;
     private javax.swing.JMenu meFile;
     private javax.swing.JMenuItem miDelete;
     private javax.swing.JMenuItem miEdit;
     private javax.swing.JMenuItem miSave;
+    private javax.swing.JPanel panelWeather;
     private javax.swing.JPopupMenu pmDestination;
     private javax.swing.JTable taWeather;
     // End of variables declaration//GEN-END:variables
+
 }
