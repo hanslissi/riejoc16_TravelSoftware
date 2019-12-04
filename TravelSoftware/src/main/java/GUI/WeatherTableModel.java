@@ -29,6 +29,10 @@ public class WeatherTableModel extends AbstractTableModel {
         fireTableDataChanged();
     }
 
+    public ArrayList<Destination> getDestinations() {
+        return destinations;
+    }
+
     public void remove(int index) {
         destinations.remove(index);
         fireTableDataChanged();

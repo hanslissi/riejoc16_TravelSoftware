@@ -6,14 +6,22 @@
 package GUI;
 
 import API.APIClass;
-import API.WeatherInfoDesrializer;
+import API.WeatherInfoDeserializer;
 import Data.Destination;
 import Data.WeatherInformation;
 import Enums.WeatherType;
+import XML.XMLAccess;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import java.io.IOException;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.swing.JOptionPane;
 import javax.ws.rs.core.Response;
+import org.jdom2.JDOMException;
 
 /**
  *
@@ -22,7 +30,8 @@ import javax.ws.rs.core.Response;
 public class MainWeatherDisplay extends javax.swing.JFrame {
 
     private WeatherTableModel weatherModel = new WeatherTableModel();
-
+    private LocalDate travelDay = LocalDate.now();
+    
     public MainWeatherDisplay() {
         initComponents();
         taWeather.setModel(weatherModel);
@@ -51,7 +60,8 @@ public class MainWeatherDisplay extends javax.swing.JFrame {
         jScrollPane1 = new javax.swing.JScrollPane();
         taWeather = new javax.swing.JTable();
         jMenuBar1 = new javax.swing.JMenuBar();
-        jMenu1 = new javax.swing.JMenu();
+        meFile = new javax.swing.JMenu();
+        miSave = new javax.swing.JMenuItem();
         jMenu2 = new javax.swing.JMenu();
 
         miDelete.setText("Delete");
@@ -71,6 +81,14 @@ public class MainWeatherDisplay extends javax.swing.JFrame {
         pmDestination.add(miEdit);
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
+        addWindowListener(new java.awt.event.WindowAdapter() {
+            public void windowClosing(java.awt.event.WindowEvent evt) {
+                formWindowClosing(evt);
+            }
+            public void windowOpened(java.awt.event.WindowEvent evt) {
+                formWindowOpened(evt);
+            }
+        });
 
         jPanel1.setPreferredSize(new java.awt.Dimension(400, 30));
         jPanel1.setLayout(new java.awt.GridLayout(1, 2));
@@ -117,12 +135,27 @@ public class MainWeatherDisplay extends javax.swing.JFrame {
             }
         ));
         taWeather.setComponentPopupMenu(pmDestination);
+        taWeather.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                taWeatherMouseClicked(evt);
+            }
+        });
         jScrollPane1.setViewportView(taWeather);
 
         getContentPane().add(jScrollPane1, java.awt.BorderLayout.CENTER);
 
-        jMenu1.setText("File");
-        jMenuBar1.add(jMenu1);
+        meFile.setText("File");
+
+        miSave.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_S, java.awt.event.InputEvent.CTRL_MASK));
+        miSave.setText("Save");
+        miSave.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                miSaveActionPerformed(evt);
+            }
+        });
+        meFile.add(miSave);
+
+        jMenuBar1.add(meFile);
 
         jMenu2.setText("Edit");
         jMenuBar1.add(jMenu2);
@@ -131,21 +164,42 @@ public class MainWeatherDisplay extends javax.swing.JFrame {
 
         pack();
     }// </editor-fold>//GEN-END:initComponents
-
-    private void btAddActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btAddActionPerformed
-        String cityName = JOptionPane.showInputDialog("Name of city:");
+    private void addCity(String cityName) {
         Response response = APIClass.getInstance().getTodaysWeatherOf(cityName);
         if (APIClass.getInstance().httpResponseIsOk(response)) {
-            Gson gson = new GsonBuilder().registerTypeAdapter(WeatherInformation.class, new WeatherInfoDesrializer()).create();
+            Gson gson = new GsonBuilder().registerTypeAdapter(WeatherInformation.class, new WeatherInfoDeserializer()).create();
             WeatherInformation weatherInfo = gson.fromJson(response.readEntity(String.class), WeatherInformation.class);
+            weatherInfo.setDate(LocalDate.now());
             weatherModel.add(new Destination(cityName, weatherInfo, WeatherType.CLOUDY));
         } else {
             JOptionPane.showMessageDialog(null, "City not found...");
         }
+    }
+    
+    private void saveDestinations() {
+        try {
+            XMLAccess access = XMLAccess.getInstance();
+            access.persistDestinations(weatherModel.getDestinations());
+        } catch (IOException ex) {
+            Logger.getLogger(MainWeatherDisplay.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (JDOMException ex) {
+            Logger.getLogger(MainWeatherDisplay.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+
+    private void btAddActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btAddActionPerformed
+        String cityName = JOptionPane.showInputDialog("Name of city:");
+        addCity(cityName);
     }//GEN-LAST:event_btAddActionPerformed
 
     private void btPlanActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btPlanActionPerformed
-
+        PlandayDialog dialog = new PlandayDialog(this, true);
+        dialog.setAlwaysOnTop(true);
+        dialog.setVisible(true);
+        if(dialog.isOk()) {
+            travelDay = dialog.getDayChosen();
+            laDate.setText(travelDay.format(DateTimeFormatter.ofPattern("dd.MM.yyyy")));
+        }
     }//GEN-LAST:event_btPlanActionPerformed
 
     private void miEditActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_miEditActionPerformed
@@ -155,7 +209,7 @@ public class MainWeatherDisplay extends javax.swing.JFrame {
 
             Response response = APIClass.getInstance().getTodaysWeatherOf(cityName);
             if (APIClass.getInstance().httpResponseIsOk(response)) {
-                Gson gson = new GsonBuilder().registerTypeAdapter(WeatherInformation.class, new WeatherInfoDesrializer()).create();
+                Gson gson = new GsonBuilder().registerTypeAdapter(WeatherInformation.class, new WeatherInfoDeserializer()).create();
                 WeatherInformation weatherInfo = gson.fromJson(response.readEntity(String.class), WeatherInformation.class);
                 weatherModel.edit(new Destination(cityName, weatherInfo, WeatherType.CLOUDY), selectedIndices[0]);
             } else {
@@ -174,6 +228,39 @@ public class MainWeatherDisplay extends javax.swing.JFrame {
             JOptionPane.showMessageDialog(null, "You have to select one entry.");
         }
     }//GEN-LAST:event_miDeleteActionPerformed
+
+    private void miSaveActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_miSaveActionPerformed
+        saveDestinations();
+    }//GEN-LAST:event_miSaveActionPerformed
+
+    private void formWindowOpened(java.awt.event.WindowEvent evt) {//GEN-FIRST:event_formWindowOpened
+        try {
+            XMLAccess access = XMLAccess.getInstance();
+            ArrayList<String> destinations = access.getDestinations();
+            if (destinations != null) {
+                for (String destination : destinations) {
+                    addCity(destination);
+                }
+            }
+        } catch (IOException ex) {
+            Logger.getLogger(MainWeatherDisplay.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (JDOMException ex) {
+            Logger.getLogger(MainWeatherDisplay.class.getName()).log(Level.SEVERE, null, ex);
+        }
+
+    }//GEN-LAST:event_formWindowOpened
+
+    private void taWeatherMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_taWeatherMouseClicked
+        if(evt.getClickCount() == 2) {
+            Destination selectedDest = (Destination) weatherModel.getValueAt(taWeather.getSelectedRow(), 0);
+            WeatherForecast forecast = new WeatherForecast(selectedDest);
+            forecast.setVisible(true);
+        }
+    }//GEN-LAST:event_taWeatherMouseClicked
+
+    private void formWindowClosing(java.awt.event.WindowEvent evt) {//GEN-FIRST:event_formWindowClosing
+        saveDestinations();
+    }//GEN-LAST:event_formWindowClosing
 
     /**
      * @param args the command line arguments
@@ -214,15 +301,16 @@ public class MainWeatherDisplay extends javax.swing.JFrame {
     private javax.swing.JButton btAdd;
     private javax.swing.JButton btPlan;
     private javax.swing.JLabel jLabel1;
-    private javax.swing.JMenu jMenu1;
     private javax.swing.JMenu jMenu2;
     private javax.swing.JMenuBar jMenuBar1;
     private javax.swing.JPanel jPanel1;
     private javax.swing.JPanel jPanel2;
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JLabel laDate;
+    private javax.swing.JMenu meFile;
     private javax.swing.JMenuItem miDelete;
     private javax.swing.JMenuItem miEdit;
+    private javax.swing.JMenuItem miSave;
     private javax.swing.JPopupMenu pmDestination;
     private javax.swing.JTable taWeather;
     // End of variables declaration//GEN-END:variables

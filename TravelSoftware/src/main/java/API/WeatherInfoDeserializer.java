@@ -17,7 +17,7 @@ import java.lang.reflect.Type;
  *
  * @author johannesriedmueller
  */
-public class WeatherInfoDesrializer implements JsonDeserializer<WeatherInformation>{
+public class WeatherInfoDeserializer implements JsonDeserializer<WeatherInformation>{
 
     @Override
     public WeatherInformation deserialize(JsonElement je, Type type, JsonDeserializationContext jdc) throws JsonParseException {

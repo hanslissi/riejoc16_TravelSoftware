@@ -20,14 +20,15 @@ public class APIClass {
 
     private static APIClass instance;
     private static String URI = "https://api.openweathermap.org/data/2.5/";
-    private static String PATH = "weather";
+    private static String PATH_WEATHER = "weather";
+    private static String PATH_FORECAST = "forecast";
     private static String APPID = "bf9ce9d4ceaa0426b362345a33429a80";
     private static Client client;
-    private static WebTarget target;
+    private static WebTarget targetWeather;
+    private static WebTarget targetForecast;
 
     private APIClass() {
         this.client = ClientBuilder.newClient();
-        this.target = client.target(URI).path(PATH).queryParam("APPID", APPID);
     }
 
     public static synchronized APIClass getInstance() {
@@ -38,7 +39,16 @@ public class APIClass {
     }
     
     public Response getTodaysWeatherOf(String cityName) {
-        return client.target(URI).path(PATH)
+        return client.target(URI).path(PATH_WEATHER)
+                .queryParam("APPID", APPID)
+                .queryParam("q", cityName)
+                .queryParam("units", "metric")
+                .request(MediaType.APPLICATION_JSON)
+                .get();
+    }
+    
+    public Response getForecastOf(String cityName) {
+        return client.target(URI).path(PATH_FORECAST)
                 .queryParam("APPID", APPID)
                 .queryParam("q", cityName)
                 .queryParam("units", "metric")
