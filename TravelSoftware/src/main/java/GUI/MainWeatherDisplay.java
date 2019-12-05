@@ -6,19 +6,14 @@
 package GUI;
 
 import API.APIClass;
-import API.WeatherInfoDeserializer;
 import Data.Destination;
 import Data.ForecastInformation;
-import Data.WeatherInformation;
-import Enums.WeatherType;
 import XML.XMLAccess;
 import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 import com.google.gson.JsonObject;
 import com.google.gson.reflect.TypeToken;
 import java.io.IOException;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
@@ -47,9 +42,9 @@ public class MainWeatherDisplay extends javax.swing.JFrame {
     public MainWeatherDisplay() {
         initComponents();
         taWeather.setModel(weatherModel);
-        taWeather.setRowHeight(128);
+        taWeather.setRowHeight(50);
+        taWeather.getTableHeader().setReorderingAllowed(false);
         taWeather.setDefaultRenderer(Object.class, new WeatherTableCellRenderer());
-        taWeather.setAutoCreateRowSorter(true);
     }
 
     /**
@@ -188,10 +183,11 @@ public class MainWeatherDisplay extends javax.swing.JFrame {
     private void addCity(String cityName) {
         Response response = APIClass.getInstance().getTodaysWeatherOf(cityName);
         if (APIClass.getInstance().httpResponseIsOk(response)) {
-            Gson gson = new GsonBuilder().registerTypeAdapter(WeatherInformation.class, new WeatherInfoDeserializer()).create();
-            WeatherInformation weatherInfo = gson.fromJson(response.readEntity(String.class), WeatherInformation.class);
-            weatherInfo.setDate(LocalDate.now());
-            weatherModel.add(new Destination(cityName, weatherInfo, WeatherType.CLOUDY));
+            String responseString = response.readEntity(String.class);
+            Gson gson = new Gson();
+            Destination destination = gson.fromJson(responseString, Destination.class);
+            destination.setCityName(cityName);
+            weatherModel.add(destination);
         } else {
             JOptionPane.showMessageDialog(null, "City not found...");
         }
@@ -208,7 +204,7 @@ public class MainWeatherDisplay extends javax.swing.JFrame {
         }
     }
 
-    private void loadWeatherFromSpecificDate(LocalDate travelDay) {
+    private void loadWeatherForSpecificDate(LocalDate travelDay) {
         for (Destination destination : destinationBuffer) {
             Response response = APIClass.getInstance().getForecastOf(destination.getCityName());
             if (APIClass.getInstance().httpResponseIsOk(response)) {
@@ -225,26 +221,16 @@ public class MainWeatherDisplay extends javax.swing.JFrame {
     }
 
     private Destination getWeatherOfDate(List<ForecastInformation> forecastInfos, LocalDate travelDate, String cityName) {
-        int dateCounter = 0;
-        float tempSum = 0.0f;
-        int pressureSum = 0;
-        int humiditySum = 0;
-        Destination destination = null;
-        for (ForecastInformation forecastInfo : forecastInfos) {
-            if (forecastInfo.getDateTime().getDayOfMonth() == travelDate.getDayOfMonth()) {
-                dateCounter++;
-                tempSum += forecastInfo.getWeatherInfo().getTemp();
-                pressureSum += forecastInfo.getWeatherInfo().getPressure();
-                humiditySum += forecastInfo.getWeatherInfo().getHumidity();
-            } else if (forecastInfo.getDateTime().getDayOfMonth() == travelDate.plusDays(1).getDayOfMonth()) {
-                float avgTemp = tempSum / dateCounter;
-                int avgPressure = pressureSum / dateCounter;
-                int avgHumidity = humiditySum / dateCounter;
-                destination = new Destination(cityName, new WeatherInformation(avgTemp, avgPressure, avgHumidity), WeatherType.CLOUDY);
-                break;
+        int idxOfFirst = -1;
+        for (int i = 0; i < forecastInfos.size(); i++) {
+            if(forecastInfos.get(i).getDateTime().getDayOfMonth() == travelDate.getDayOfMonth()) {
+                idxOfFirst = idxOfFirst == -1 ? i : idxOfFirst;
+                if(forecastInfos.get(i).getDateTime().getHour() == 12) {
+                    return new Destination(cityName, forecastInfos.get(i).getWeatherInfo(), forecastInfos.get(i).getWeatherBasicInfo());
+                }
             }
         }
-        return destination;
+        return new Destination(cityName, forecastInfos.get(idxOfFirst).getWeatherInfo(), forecastInfos.get(idxOfFirst).getWeatherBasicInfo());
     }
 
     private void btAddActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btAddActionPerformed
@@ -262,7 +248,7 @@ public class MainWeatherDisplay extends javax.swing.JFrame {
             destinationBuffer = weatherModel.getAllDestinations();
             weatherModel.clearAll();
             panelWeather.add(btChangeToToday);
-            loadWeatherFromSpecificDate(travelDay);
+            loadWeatherForSpecificDate(travelDay);
         }
     }//GEN-LAST:event_btPlanActionPerformed
 
@@ -273,9 +259,12 @@ public class MainWeatherDisplay extends javax.swing.JFrame {
 
             Response response = APIClass.getInstance().getTodaysWeatherOf(cityName);
             if (APIClass.getInstance().httpResponseIsOk(response)) {
-                Gson gson = new GsonBuilder().registerTypeAdapter(WeatherInformation.class, new WeatherInfoDeserializer()).create();
-                WeatherInformation weatherInfo = gson.fromJson(response.readEntity(String.class), WeatherInformation.class);
-                weatherModel.edit(new Destination(cityName, weatherInfo, WeatherType.CLOUDY), selectedIndices[0]);
+                String responseString = response.readEntity(String.class);
+                Gson gson = new Gson();
+
+                Destination destination = gson.fromJson(responseString, Destination.class);
+                destination.setCityName(cityName);
+                weatherModel.edit(destination, selectedIndices[0]);
             } else {
                 JOptionPane.showMessageDialog(null, "City not found...");
             }

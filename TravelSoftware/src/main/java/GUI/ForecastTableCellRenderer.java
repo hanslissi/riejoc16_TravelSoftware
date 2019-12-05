@@ -47,7 +47,7 @@ public class ForecastTableCellRenderer implements TableCellRenderer{
                 }
             } else {
                 switch(column) {
-                    case 1: label.setText("ICON TODO"); break;
+                    case 1: label.setIcon(forecastInfo.getWeatherBasicInfo().getIcon()); break;
                     case 2: label.setText(forecastInfo.getWeatherInfo().getHumidity()+" %"); break;
                     case 3: label.setText(forecastInfo.getWeatherInfo().getPressure()+" mbar"); break;
                     case 4: label.setText(String.format("%.2f °C",forecastInfo.getWeatherInfo().getTemp())); break;

@@ -17,20 +17,11 @@ public class WeatherInformation {
     private int humidity;
     private float temp_min;
     private float temp_max;
-    private LocalDate date;
-
+    
     public WeatherInformation(float temp, int pressure, int humidity) {
         this.temp = temp;
         this.pressure = pressure;
         this.humidity = humidity;
-    }
-    
-    public LocalDate getDate() {
-        return date;
-    }
-
-    public void setDate(LocalDate date) {
-        this.date = date;
     }
 
     public float getTemp() {

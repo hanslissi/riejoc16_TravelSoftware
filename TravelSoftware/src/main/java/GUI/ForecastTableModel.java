@@ -22,11 +22,12 @@ public class ForecastTableModel extends AbstractTableModel {
         forecastInfo.addAll(forecastInfos);
         fireTableDataChanged();
     }
-    
-    public String[] getColnames() {
-        return colnames;
-    }
 
+    @Override
+    public String getColumnName(int column) {
+        return colnames[column];
+    }
+    
     @Override
     public int getRowCount() {
         return forecastInfo.size();

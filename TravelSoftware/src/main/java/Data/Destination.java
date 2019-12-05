@@ -5,7 +5,6 @@
  */
 package Data;
 
-import Enums.WeatherType;
 
 /**
  *
@@ -13,25 +12,30 @@ import Enums.WeatherType;
  */
 public class Destination {
     private String cityName;
-    private WeatherInformation weatherInfo;
-    private WeatherType weatherType;
+    private WeatherInformation main;
+    private WeatherBasicInformation[] weather;
 
-    public Destination(String cityName, WeatherInformation weatherInfo, WeatherType weatherType) {
+    public Destination(String cityName, WeatherInformation main, WeatherBasicInformation weather) {
         this.cityName = cityName;
-        this.weatherInfo = weatherInfo;
-        this.weatherType = weatherType;
+        this.main = main;
+        WeatherBasicInformation[] weatherArr = {weather};
+        this.weather = weatherArr;
     }
 
+    public void setCityName(String cityName) {
+        this.cityName = cityName;
+    }
+    
+    public WeatherBasicInformation getWeatherBasicInfo() {
+        return weather[0];
+    }
+    
     public String getCityName() {
         return cityName;
     }
-    
-    public WeatherType getWeatherType() {
-        return weatherType;
-    }
 
     public WeatherInformation getWeatherInfo() {
-        return weatherInfo;
+        return main;
     }
     
 }

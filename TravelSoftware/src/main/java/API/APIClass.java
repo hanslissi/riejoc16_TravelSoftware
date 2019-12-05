@@ -5,7 +5,7 @@
  */
 package API;
 
-import java.util.Map;
+import javax.swing.ImageIcon;
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.client.WebTarget;

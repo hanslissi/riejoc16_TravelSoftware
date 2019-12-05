@@ -31,7 +31,7 @@ public class WeatherTableCellRenderer implements TableCellRenderer {
         if (value != null) {
             Destination dest = (Destination) value;
             if (column == 4) {
-                label.setIcon(dest.getWeatherType().getIcon());
+                label.setIcon(dest.getWeatherBasicInfo().getIcon());
             } else {
                 WeatherInformation weatherInfo = dest.getWeatherInfo();
                 switch (column) {

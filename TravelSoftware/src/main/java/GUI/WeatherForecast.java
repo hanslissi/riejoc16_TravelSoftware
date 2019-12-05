@@ -8,12 +8,10 @@ package GUI;
 import API.APIClass;
 import Data.Destination;
 import Data.ForecastInformation;
-import Data.WeatherInformation;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import com.google.gson.reflect.TypeToken;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
+import java.time.LocalDate;
 import javax.ws.rs.core.Response;
 import java.util.ArrayList;
 import java.util.List;
@@ -32,6 +30,8 @@ public class WeatherForecast extends javax.swing.JFrame {
         this.destination = destination;
         initComponents();
         taForecast.setModel(forecastModel);
+        taForecast.setRowHeight(50);
+        taForecast.getTableHeader().setReorderingAllowed(false);
         taForecast.setDefaultRenderer(Object.class, new ForecastTableCellRenderer());
         laCityname.setText("5-day forecast of: " + destination.getCityName());
         loadForecast();
@@ -47,37 +47,26 @@ public class WeatherForecast extends javax.swing.JFrame {
             java.lang.reflect.Type listType = new TypeToken<ArrayList<ForecastInformation>>() {
             }.getType();
             List<ForecastInformation> forecastInfosHours = new Gson().fromJson(forecastJsonObject.get("list"), listType);
-            parseForecastIntoWeatherInfo(forecastInfosHours);
+            LocalDate date = LocalDate.now();
+            while(date.isBefore(LocalDate.now().plusDays(5))) {
+                forecastInfosDays.add(getForecastOfDay(date, forecastInfosHours));
+                date = date.plusDays(1);
+            }
+            forecastModel.addAll(forecastInfosDays);
         }
     }
-
-    private void parseForecastIntoWeatherInfo(List<ForecastInformation> forecastInfosHours) {
-        int dateCounter = 0;
-        float tempSum = 0.0f;
-        int pressureSum = 0;
-        int humiditySum = 0;
-        LocalDateTime oldDate = null;
-        for (ForecastInformation forecastInfoHour : forecastInfosHours) {
-            LocalDateTime currentDate = forecastInfoHour.getDateTime();
-            if (oldDate != null && currentDate.getDayOfMonth() != oldDate.getDayOfMonth()) {
-                float avgTemp = tempSum / dateCounter;
-                int avgPressure = pressureSum / dateCounter;
-                int avgHumidity = humiditySum / dateCounter;
-                forecastInfosDays.add(new ForecastInformation(
-                        oldDate.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")),
-                        new WeatherInformation(avgTemp, avgPressure, avgHumidity)));
-                tempSum = 0.0f;
-                pressureSum = 0;
-                humiditySum = 0;
-                dateCounter = 0;
+    
+    private ForecastInformation getForecastOfDay(LocalDate date, List<ForecastInformation> forecastInfosHours) {
+        int idxOfFirst = -1;
+        for (int i = 0; i < forecastInfosHours.size(); i++) {
+            if(forecastInfosHours.get(i).getDateTime().getDayOfMonth() == date.getDayOfMonth()) {
+                idxOfFirst = idxOfFirst == -1 ? i : idxOfFirst;
+                if(forecastInfosHours.get(i).getDateTime().getHour() == 12) {
+                    return forecastInfosHours.get(i);
+                }
             }
-            dateCounter++;
-            oldDate = currentDate;
-            tempSum += forecastInfoHour.getWeatherInfo().getTemp();
-            pressureSum += forecastInfoHour.getWeatherInfo().getPressure();
-            humiditySum += forecastInfoHour.getWeatherInfo().getHumidity();
         }
-        forecastModel.addAll(forecastInfosDays);
+        return forecastInfosHours.get(idxOfFirst);
     }
 
     /**
