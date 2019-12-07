@@ -24,6 +24,7 @@ public class WeatherTableCellRenderer implements TableCellRenderer {
         JLabel label = new JLabel();
         label.setOpaque(true);
         label.setAlignmentY(label.CENTER);
+        label.setBackground(Color.LIGHT_GRAY);
         if (isSelected) {
             label.setBackground(Color.gray);
         }
@@ -43,17 +44,53 @@ public class WeatherTableCellRenderer implements TableCellRenderer {
                         break;
                     case 2:
                         label.setText(weatherInfo.getHumidity() + " %");
+                        int humidity = dest.getWeatherInfo().getHumidity();
+                        setHumidityBackground(label, humidity);
                         break;
                     case 3:
                         label.setText(String.format("%.2f °C",weatherInfo.getTemp()));
+                        float temp = dest.getWeatherInfo().getTemp();
+                        setTempBackground(label, temp);
+                        break;
+                    case 5:
+                        label.setText(dest.getWeatherBasicInfo().getDescription());
                         break;
                     default:
                         label.setText("???");
                         break;
                 }
             }
+            
         }
 
         return label;
+    }
+    
+    private void setTempBackground(JLabel label, float temp) {
+        if(temp <= 0.0f) {
+                label.setBackground(new Color(153, 204, 255)); //light-Blue
+            } else if(temp <= 10.0f) {
+                label.setBackground(new Color(255, 230, 128)); //light-orange
+            } else if(temp <= 20.0f) {
+                label.setBackground(new Color(255, 209, 26)); //orange
+            } else if(temp > 20) {
+                label.setBackground(new Color(255, 133, 51)); //deep orange
+            }
+    }
+    
+    private void setHumidityBackground(JLabel label, int humidity) {
+        if(humidity <= 25) {
+                label.setBackground(new Color(204, 230, 255)); //light-light-Blue
+            } else if(humidity <= 50) {
+                label.setBackground(new Color(153, 206, 255)); //light-blue
+            } else if(humidity <= 70) {
+                label.setBackground(new Color(128, 193, 255)); //blue
+            } else if(humidity <= 80) {
+                label.setBackground(new Color(77, 169, 255)); //dark-blue
+            } else if(humidity <= 90) {
+                label.setBackground(new Color(26, 144, 255)); //dark-dark-blue
+            } else if(humidity > 90) {
+                label.setBackground(new Color(0, 119, 230)); //dark-dark-dark-blue
+            }
     }
 }

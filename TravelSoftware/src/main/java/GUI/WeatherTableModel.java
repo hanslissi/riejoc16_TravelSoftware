@@ -16,7 +16,7 @@ import javax.swing.table.AbstractTableModel;
 public class WeatherTableModel extends AbstractTableModel {
 
     private ArrayList<Destination> destinations = new ArrayList<>();
-    private static final String[] colnames = {"City", "Pressure", "Humidity", "Temp", ""};
+    private static final String[] colnames = {"City", "Pressure", "Humidity", "Temp", "", "Description"};
 
     public void add(Destination destination) {
         destinations.add(destination);
@@ -43,6 +43,18 @@ public class WeatherTableModel extends AbstractTableModel {
 
     public ArrayList<Destination> getDestinations() {
         return destinations;
+    }
+    
+    public String getCityNameAt(int idx) {
+        return destinations.get(idx).getCityName();
+    }
+    
+    public ArrayList<Destination> getDestinations(int[] indices) {
+        ArrayList<Destination> destiToReturn = new ArrayList<>();
+        for (int idx : indices) {
+            destiToReturn.add(destinations.get(idx));
+        }
+        return destiToReturn;
     }
 
     public void clearAll() {

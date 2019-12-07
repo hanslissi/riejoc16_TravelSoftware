@@ -1,7 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <destinations>
-  <destination>Graz</destination>
   <destination>Unterpremstätten</destination>
-  <destination>Sydney</destination>
   <destination>Lieboch</destination>
+  <destination>Sahara</destination>
+  <destination>Cairo</destination>
+  <destination>New Orleans</destination>
+  <destination>Toronto</destination>
+  <destination>Vancouver</destination>
+  <destination>Dublin</destination>
 </destinations>

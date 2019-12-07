@@ -6,6 +6,7 @@
 package GUI;
 
 import API.APIClass;
+import Comparison.DestinationComparer;
 import Data.Destination;
 import Data.ForecastInformation;
 import XML.XMLAccess;
@@ -59,6 +60,7 @@ public class MainWeatherDisplay extends javax.swing.JFrame {
         pmDestination = new javax.swing.JPopupMenu();
         miDelete = new javax.swing.JMenuItem();
         miEdit = new javax.swing.JMenuItem();
+        miCompare = new javax.swing.JMenuItem();
         btChangeToToday = new javax.swing.JToggleButton();
         jPanel1 = new javax.swing.JPanel();
         btAdd = new javax.swing.JButton();
@@ -71,7 +73,6 @@ public class MainWeatherDisplay extends javax.swing.JFrame {
         jMenuBar1 = new javax.swing.JMenuBar();
         meFile = new javax.swing.JMenu();
         miSave = new javax.swing.JMenuItem();
-        jMenu2 = new javax.swing.JMenu();
 
         miDelete.setText("Delete");
         miDelete.addActionListener(new java.awt.event.ActionListener() {
@@ -88,6 +89,14 @@ public class MainWeatherDisplay extends javax.swing.JFrame {
             }
         });
         pmDestination.add(miEdit);
+
+        miCompare.setText("Compare");
+        miCompare.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                miCompareActionPerformed(evt);
+            }
+        });
+        pmDestination.add(miCompare);
 
         btChangeToToday.setText("Change to Today");
         btChangeToToday.addActionListener(new java.awt.event.ActionListener() {
@@ -173,9 +182,6 @@ public class MainWeatherDisplay extends javax.swing.JFrame {
 
         jMenuBar1.add(meFile);
 
-        jMenu2.setText("Edit");
-        jMenuBar1.add(jMenu2);
-
         setJMenuBar(jMenuBar1);
 
         pack();
@@ -204,28 +210,27 @@ public class MainWeatherDisplay extends javax.swing.JFrame {
         }
     }
 
-    private void loadWeatherForSpecificDate(LocalDate travelDay) {
-        for (Destination destination : destinationBuffer) {
-            Response response = APIClass.getInstance().getForecastOf(destination.getCityName());
-            if (APIClass.getInstance().httpResponseIsOk(response)) {
-                String responseString = response.readEntity(String.class);
+    private Destination loadWeatherForSpecificDate(Destination destination, LocalDate travelDay) {
+        Response response = APIClass.getInstance().getForecastOf(destination.getCityName());
+        if (APIClass.getInstance().httpResponseIsOk(response)) {
+            String responseString = response.readEntity(String.class);
 
-                Gson gson = new Gson();
-                JsonObject forecastJsonObject = gson.fromJson(responseString, JsonObject.class);
-                java.lang.reflect.Type listType = new TypeToken<ArrayList<ForecastInformation>>() {
-                }.getType();
-                List<ForecastInformation> forecastInfosHours = new Gson().fromJson(forecastJsonObject.get("list"), listType);
-                weatherModel.add(getWeatherOfDate(forecastInfosHours, travelDay, destination.getCityName()));
-            }
+            Gson gson = new Gson();
+            JsonObject forecastJsonObject = gson.fromJson(responseString, JsonObject.class);
+            java.lang.reflect.Type listType = new TypeToken<ArrayList<ForecastInformation>>() {
+            }.getType();
+            List<ForecastInformation> forecastInfosHours = new Gson().fromJson(forecastJsonObject.get("list"), listType);
+            return getWeatherOfDate(forecastInfosHours, travelDay, destination.getCityName());
         }
+        return null;
     }
 
     private Destination getWeatherOfDate(List<ForecastInformation> forecastInfos, LocalDate travelDate, String cityName) {
         int idxOfFirst = -1;
         for (int i = 0; i < forecastInfos.size(); i++) {
-            if(forecastInfos.get(i).getDateTime().getDayOfMonth() == travelDate.getDayOfMonth()) {
+            if (forecastInfos.get(i).getDateTime().getDayOfMonth() == travelDate.getDayOfMonth()) {
                 idxOfFirst = idxOfFirst == -1 ? i : idxOfFirst;
-                if(forecastInfos.get(i).getDateTime().getHour() == 12) {
+                if (forecastInfos.get(i).getDateTime().getHour() == 12) {
                     return new Destination(cityName, forecastInfos.get(i).getWeatherInfo(), forecastInfos.get(i).getWeatherBasicInfo());
                 }
             }
@@ -235,7 +240,9 @@ public class MainWeatherDisplay extends javax.swing.JFrame {
 
     private void btAddActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btAddActionPerformed
         String cityName = JOptionPane.showInputDialog("Name of city:");
-        addCity(cityName);
+        if (cityName != null) {
+            addCity(cityName);
+        }
     }//GEN-LAST:event_btAddActionPerformed
 
     private void btPlanActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btPlanActionPerformed
@@ -248,7 +255,9 @@ public class MainWeatherDisplay extends javax.swing.JFrame {
             destinationBuffer = weatherModel.getAllDestinations();
             weatherModel.clearAll();
             panelWeather.add(btChangeToToday);
-            loadWeatherForSpecificDate(travelDay);
+            for (Destination destination : destinationBuffer) {
+                weatherModel.add(loadWeatherForSpecificDate(destination, travelDay));
+            }
         }
     }//GEN-LAST:event_btPlanActionPerformed
 
@@ -256,17 +265,18 @@ public class MainWeatherDisplay extends javax.swing.JFrame {
         int[] selectedIndices = taWeather.getSelectedRows();
         if (selectedIndices.length == 1) {
             String cityName = JOptionPane.showInputDialog("Name of city:");
+            if (cityName != null) {
+                Response response = APIClass.getInstance().getTodaysWeatherOf(cityName);
+                if (APIClass.getInstance().httpResponseIsOk(response)) {
+                    String responseString = response.readEntity(String.class);
+                    Gson gson = new Gson();
 
-            Response response = APIClass.getInstance().getTodaysWeatherOf(cityName);
-            if (APIClass.getInstance().httpResponseIsOk(response)) {
-                String responseString = response.readEntity(String.class);
-                Gson gson = new Gson();
-
-                Destination destination = gson.fromJson(responseString, Destination.class);
-                destination.setCityName(cityName);
-                weatherModel.edit(destination, selectedIndices[0]);
-            } else {
-                JOptionPane.showMessageDialog(null, "City not found...");
+                    Destination destination = gson.fromJson(responseString, Destination.class);
+                    destination.setCityName(cityName);
+                    weatherModel.edit(destination, selectedIndices[0]);
+                } else {
+                    JOptionPane.showMessageDialog(null, "City not found...");
+                }
             }
         } else {
             JOptionPane.showMessageDialog(null, "You have to select one entry.");
@@ -322,6 +332,30 @@ public class MainWeatherDisplay extends javax.swing.JFrame {
         panelWeather.remove(btChangeToToday);
     }//GEN-LAST:event_btChangeToTodayActionPerformed
 
+    private void miCompareActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_miCompareActionPerformed
+        int[] selectedIndices = taWeather.getSelectedRows();
+        if (selectedIndices.length > 1) {
+            WeatherComparisonDialog dialog = new WeatherComparisonDialog(this, true);
+            dialog.setVisible(true);
+            if(dialog.isOk()) {
+                LocalDate dateChosen = dialog.getDayChosen();
+                int chosenComparer = dialog.getComparerChosen();
+                ArrayList<Destination> destinationComps = new ArrayList<>();
+                if(!dateChosen.isEqual(LocalDate.now())) {
+                    for (Destination destination : weatherModel.getDestinations()) {
+                        destinationComps.add(loadWeatherForSpecificDate(destination, dateChosen));
+                    }
+                }
+                else {
+                    destinationComps = weatherModel.getDestinations(selectedIndices);
+                }
+                JOptionPane.showMessageDialog(null, "The best destination is " + DestinationComparer.getBestDestination(destinationComps, chosenComparer));
+            }
+        } else {
+            JOptionPane.showMessageDialog(null, "You have to select more than one entry");
+        }
+    }//GEN-LAST:event_miCompareActionPerformed
+
     /**
      * @param args the command line arguments
      */
@@ -362,12 +396,12 @@ public class MainWeatherDisplay extends javax.swing.JFrame {
     private javax.swing.JToggleButton btChangeToToday;
     private javax.swing.JButton btPlan;
     private javax.swing.JLabel jLabel1;
-    private javax.swing.JMenu jMenu2;
     private javax.swing.JMenuBar jMenuBar1;
     private javax.swing.JPanel jPanel1;
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JLabel laDate;
     private javax.swing.JMenu meFile;
+    private javax.swing.JMenuItem miCompare;
     private javax.swing.JMenuItem miDelete;
     private javax.swing.JMenuItem miEdit;
     private javax.swing.JMenuItem miSave;
