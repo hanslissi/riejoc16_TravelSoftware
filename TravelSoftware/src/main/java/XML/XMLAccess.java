@@ -41,6 +41,12 @@ public class XMLAccess {
         return builder.build(xmlFile);
     }
     
+    /**
+     * Saves xml file
+     * @param document to be saved
+     * @throws FileNotFoundException
+     * @throws IOException 
+     */
     private void persistXML(Document document) throws FileNotFoundException, IOException {
         XMLOutputter outputter = new XMLOutputter(Format.getPrettyFormat());
         
@@ -49,6 +55,11 @@ public class XMLAccess {
         }
     }
     
+    /**
+     * Saves all destinations to xml file
+     * @param destinations list of destinations to be saves.
+     * @throws IOException when file not found.
+     */
     public void persistDestinations (ArrayList<Destination> destinations) throws IOException {
         Element rootElement = new Element("destinations");
         for (Destination destination : destinations) {
@@ -59,6 +70,10 @@ public class XMLAccess {
         persistXML(new Document(rootElement));
     }
     
+    /**
+     * Loads saved city names of xml
+     * @return list of all city names saved.
+     */
     public ArrayList<String> getDestinations() {
         try{
             Document document = getDocument();

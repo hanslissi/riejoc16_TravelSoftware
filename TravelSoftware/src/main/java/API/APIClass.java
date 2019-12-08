@@ -38,6 +38,11 @@ public class APIClass {
         return instance;
     }
     
+    /**
+     * API call to OpenWeatherMap to get the current weather of a specific city.
+     * @param cityName The name of the city of which the weather should be loaded.
+     * @return The http response of the API
+     */
     public Response getTodaysWeatherOf(String cityName) {
         return client.target(URI).path(PATH_WEATHER)
                 .queryParam("APPID", APPID)
@@ -47,6 +52,11 @@ public class APIClass {
                 .get();
     }
     
+    /**
+     * API call to OpenWeatherMap to get a 5 day, 3 hourly weather forecast of a specific city.
+     * @param cityName The name of the city of which the weather should be loaded.
+     * @return The http response of the API
+     */
     public Response getForecastOf(String cityName) {
         return client.target(URI).path(PATH_FORECAST)
                 .queryParam("APPID", APPID)
@@ -56,6 +66,11 @@ public class APIClass {
                 .get();
     }
 
+    /**
+     * Checks if a response has status code 200
+     * @param response The http response to check
+     * @return true if status is 200, false if it's something else.
+     */
     public static boolean httpResponseIsOk(Response response) {
         if(response.getStatus() == 200) {
             return true;

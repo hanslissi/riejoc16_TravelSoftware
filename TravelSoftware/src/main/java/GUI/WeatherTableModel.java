@@ -23,24 +23,41 @@ public class WeatherTableModel extends AbstractTableModel {
         fireTableRowsInserted(destinations.size() - 1, destinations.size() - 1);
     }
     
+    /**
+     * Adds all destinations given, but clears all current ones before.
+     * @param destinations list of destinations which should be added.
+     */
     public void addAllAndClearOld(ArrayList<Destination> destinations) {
         this.destinations.clear();
         this.destinations.addAll(destinations);
         fireTableDataChanged();
     }
 
+    /**
+     * Edits destination at index
+     * @param destination Destination to 'replace' with current one at index
+     * @param index Index which should be 'replaces'
+     */
     public void edit(Destination destination, int index) {
         destinations.remove(index);
         destinations.add(index, destination);
         fireTableDataChanged();
     }
     
+    /**
+     * Get all current destinations (New list)
+     * @return list with all destinations
+     */
     public ArrayList<Destination> getAllDestinations() {
         ArrayList<Destination> destinations = new ArrayList<>();
         destinations.addAll(this.destinations);
         return destinations;
     }
 
+    /**
+     * Get all current destinations
+     * @return list with all destinations
+     */
     public ArrayList<Destination> getDestinations() {
         return destinations;
     }
@@ -49,6 +66,11 @@ public class WeatherTableModel extends AbstractTableModel {
         return destinations.get(idx).getCityName();
     }
     
+    /**
+     * Gets destinations on indices.
+     * @param indices indices to get destinations
+     * @return list of destinations of all indices of Table.
+     */
     public ArrayList<Destination> getDestinations(int[] indices) {
         ArrayList<Destination> destiToReturn = new ArrayList<>();
         for (int idx : indices) {
@@ -57,11 +79,18 @@ public class WeatherTableModel extends AbstractTableModel {
         return destiToReturn;
     }
 
+    /**
+     * clears all entries
+     */
     public void clearAll() {
         destinations.clear();
         fireTableDataChanged();
     }
     
+    /**
+     * Removes an element at index.
+     * @param index index to remove
+     */
     public void remove(int index) {
         destinations.remove(index);
         fireTableDataChanged();

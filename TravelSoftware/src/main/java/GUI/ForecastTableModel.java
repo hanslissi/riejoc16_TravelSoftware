@@ -6,7 +6,6 @@
 package GUI;
 
 import Data.ForecastInformation;
-import Data.WeatherInformation;
 import java.util.ArrayList;
 import javax.swing.table.AbstractTableModel;
 
@@ -18,6 +17,10 @@ public class ForecastTableModel extends AbstractTableModel {
     private ArrayList<ForecastInformation> forecastInfo = new ArrayList<>();
     private String[] colnames = {"Date","", "Humidity", "Pressure", "Temperature"};
 
+    /**
+     * Adds all forecast information to existing ones.
+     * @param forecastInfos information to be added.
+     */
     public void addAll(ArrayList<ForecastInformation> forecastInfos) {
         forecastInfo.addAll(forecastInfos);
         fireTableDataChanged();

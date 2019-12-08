@@ -37,6 +37,9 @@ public class WeatherForecast extends javax.swing.JFrame {
         loadForecast();
     }
 
+    /**
+     * Loads forecast and adds the 5 days to the table.
+     */
     private void loadForecast() {
         Response response = APIClass.getInstance().getForecastOf(destination.getCityName());
         if (APIClass.getInstance().httpResponseIsOk(response)) {
@@ -56,6 +59,12 @@ public class WeatherForecast extends javax.swing.JFrame {
         }
     }
     
+    /**
+     * Gets the forecast of a specific day
+     * @param date day of which the weather should be found.
+     * @param forecastInfosHours All forecast information in which the day should be searched
+     * @return forecast at 12:00 if it finds 12:00. If not then it returns the first one it finds at the given day. If it doesn't find the day at all it returns null.
+     */
     private ForecastInformation getForecastOfDay(LocalDate date, List<ForecastInformation> forecastInfosHours) {
         int idxOfFirst = -1;
         for (int i = 0; i < forecastInfosHours.size(); i++) {
@@ -66,7 +75,10 @@ public class WeatherForecast extends javax.swing.JFrame {
                 }
             }
         }
-        return forecastInfosHours.get(idxOfFirst);
+        if(idxOfFirst != -1) {
+            return forecastInfosHours.get(idxOfFirst);
+        }
+        return null;
     }
 
     /**

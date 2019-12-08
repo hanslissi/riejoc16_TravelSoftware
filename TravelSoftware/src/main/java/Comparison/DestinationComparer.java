@@ -14,6 +14,12 @@ import java.util.ArrayList;
  */
 public class DestinationComparer {
     
+    /**
+     * Gets best destination to travel to.
+     * @param destinationComps Destinations which should be compared
+     * @param comp 0 => compares temperature, 1 => compares humidity level, 2 => compares pressure level
+     * @return String with the city name which is decided to be the best option
+     */
     public static String getBestDestination(ArrayList<Destination> destinationComps, int comp) {
         String bestCity = "";
         switch(comp) {
@@ -24,6 +30,11 @@ public class DestinationComparer {
         return bestCity;
     }
     
+    /**
+     * Gets the destination with the highest temperature.
+     * @param destinationComps Destinations which should be compared
+     * @return String with city name with the highest temperature
+     */
     private static String getBestByTemperature(ArrayList<Destination> destinationComps) {
         int highestTempIdx = 0;
         float highestTemp = destinationComps.get(highestTempIdx).getWeatherInfo().getTemp();
@@ -37,6 +48,11 @@ public class DestinationComparer {
         return destinationComps.get(highestTempIdx).getCityName();
     }
     
+    /**
+     * Gets the destination with the lowest humidity.
+     * @param destinationComps Destinations which should be compared
+     * @return String with city name with the lowest humidity
+     */
     private static String getBestByHumidity(ArrayList<Destination> destinationComps) {
         int lowestHumIdx = 0;
         int lowestHum = destinationComps.get(lowestHumIdx).getWeatherInfo().getHumidity();
@@ -50,6 +66,11 @@ public class DestinationComparer {
         return destinationComps.get(lowestHumIdx).getCityName();
     }
     
+    /**
+     * Gets the destination with the highest pressure.
+     * @param destinationComps Destinations which should be compared
+     * @return String with city name with the highest pressure
+     */
     private static String getBestByPressure(ArrayList<Destination> destinationComps) {
         int highestPressIdx = 0;
         int highestPressure = destinationComps.get(highestPressIdx).getWeatherInfo().getPressure();

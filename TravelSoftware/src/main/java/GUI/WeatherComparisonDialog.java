@@ -120,6 +120,10 @@ public class WeatherComparisonDialog extends javax.swing.JDialog {
         pack();
     }// </editor-fold>//GEN-END:initComponents
 
+    /**
+     * Gets selected comparer
+     * @return 0 => Temperature was selected, 1 => Humidity was selected, 2 => Pressure was selected.
+     */
     private int getSelectedComparer() {
         String selected = "";
         for (Enumeration<AbstractButton> buttons = bgComparer.getElements(); buttons.hasMoreElements();) {
@@ -147,14 +151,15 @@ public class WeatherComparisonDialog extends javax.swing.JDialog {
     public int getComparerChosen() {
         return comparerChosen;
     }
-    
+
     public boolean isOk() {
         return ok;
     }
+
     private void btOkActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btOkActionPerformed
         ok = true;
         comparerChosen = getSelectedComparer();
-        if(comparerChosen != -1) {
+        if (comparerChosen != -1) {
             this.dispose();
         } else {
             JOptionPane.showMessageDialog(null, "You have to select an Comparer");

@@ -186,6 +186,11 @@ public class MainWeatherDisplay extends javax.swing.JFrame {
 
         pack();
     }// </editor-fold>//GEN-END:initComponents
+    /**
+     * Makes API call to get weather from it and adds it to the table.
+     * If it doesn't find the city it will display a message.
+     * @param cityName The name of the city of which the weather should be loaded.
+     */
     private void addCity(String cityName) {
         Response response = APIClass.getInstance().getTodaysWeatherOf(cityName);
         if (APIClass.getInstance().httpResponseIsOk(response)) {
@@ -199,6 +204,10 @@ public class MainWeatherDisplay extends javax.swing.JFrame {
         }
     }
 
+    /**
+     * Saves the destination which are currently in the list. 
+     * It saves it in the /xml/destination.xml.
+     */
     private void saveDestinations() {
         try {
             XMLAccess access = XMLAccess.getInstance();
@@ -210,6 +219,12 @@ public class MainWeatherDisplay extends javax.swing.JFrame {
         }
     }
 
+    /**
+     * Loads Weather for specific date.
+     * @param destination The Destination of which the weather should be loaded
+     * @param travelDay The day of which the weather should be loaded
+     * @return a Destination with all necessary weather data.
+     */
     private Destination loadWeatherForSpecificDate(Destination destination, LocalDate travelDay) {
         Response response = APIClass.getInstance().getForecastOf(destination.getCityName());
         if (APIClass.getInstance().httpResponseIsOk(response)) {
@@ -225,6 +240,14 @@ public class MainWeatherDisplay extends javax.swing.JFrame {
         return null;
     }
 
+    /**
+     * Gets the weather from a list of hourly forecasts and picks the one at 12:00.
+     * If there is no entry for 12:00 on the given day it picks the firs one it finds.
+     * @param forecastInfos list of hourly forecast infos 
+     * @param travelDate The day of which the weather is needed.
+     * @param cityName The city name
+     * @return The destination with the necessary Weather information. returns null if it doesn't find the day given.
+     */
     private Destination getWeatherOfDate(List<ForecastInformation> forecastInfos, LocalDate travelDate, String cityName) {
         int idxOfFirst = -1;
         for (int i = 0; i < forecastInfos.size(); i++) {
@@ -235,7 +258,10 @@ public class MainWeatherDisplay extends javax.swing.JFrame {
                 }
             }
         }
-        return new Destination(cityName, forecastInfos.get(idxOfFirst).getWeatherInfo(), forecastInfos.get(idxOfFirst).getWeatherBasicInfo());
+        if(idxOfFirst != -1) {
+            return new Destination(cityName, forecastInfos.get(idxOfFirst).getWeatherInfo(), forecastInfos.get(idxOfFirst).getWeatherBasicInfo());
+        }
+        return null;
     }
 
     private void btAddActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btAddActionPerformed
@@ -252,7 +278,9 @@ public class MainWeatherDisplay extends javax.swing.JFrame {
         if (dialog.isOk()) {
             travelDay = dialog.getDayChosen();
             laDate.setText(travelDay.format(dtf));
-            destinationBuffer = weatherModel.getAllDestinations();
+            if (destinationBuffer.size() > 0) {
+                destinationBuffer = weatherModel.getAllDestinations();
+            }
             weatherModel.clearAll();
             panelWeather.add(btChangeToToday);
             for (Destination destination : destinationBuffer) {
@@ -328,6 +356,7 @@ public class MainWeatherDisplay extends javax.swing.JFrame {
     private void btChangeToTodayActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btChangeToTodayActionPerformed
         this.travelDay = LocalDate.now();
         weatherModel.addAllAndClearOld(destinationBuffer);
+        destinationBuffer.clear();
         laDate.setText("Today");
         panelWeather.remove(btChangeToToday);
     }//GEN-LAST:event_btChangeToTodayActionPerformed
@@ -337,16 +366,15 @@ public class MainWeatherDisplay extends javax.swing.JFrame {
         if (selectedIndices.length > 1) {
             WeatherComparisonDialog dialog = new WeatherComparisonDialog(this, true);
             dialog.setVisible(true);
-            if(dialog.isOk()) {
+            if (dialog.isOk()) {
                 LocalDate dateChosen = dialog.getDayChosen();
                 int chosenComparer = dialog.getComparerChosen();
                 ArrayList<Destination> destinationComps = new ArrayList<>();
-                if(!dateChosen.isEqual(LocalDate.now())) {
+                if (!dateChosen.isEqual(LocalDate.now())) {
                     for (Destination destination : weatherModel.getDestinations()) {
                         destinationComps.add(loadWeatherForSpecificDate(destination, dateChosen));
                     }
-                }
-                else {
+                } else {
                     destinationComps = weatherModel.getDestinations(selectedIndices);
                 }
                 JOptionPane.showMessageDialog(null, "The best destination is " + DestinationComparer.getBestDestination(destinationComps, chosenComparer));

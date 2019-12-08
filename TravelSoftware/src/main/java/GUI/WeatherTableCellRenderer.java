@@ -66,6 +66,11 @@ public class WeatherTableCellRenderer implements TableCellRenderer {
         return label;
     }
     
+    /**
+     * Sets background color of label depending on the temperature.
+     * @param label JLabel of which the background color should be set
+     * @param temp the temperature in celsius
+     */
     private void setTempBackground(JLabel label, float temp) {
         if(temp <= 0.0f) {
                 label.setBackground(new Color(153, 204, 255)); //light-Blue
@@ -78,6 +83,11 @@ public class WeatherTableCellRenderer implements TableCellRenderer {
             }
     }
     
+    /**
+     * Sets background color of label depending on the humidity.
+     * @param label JLabel of which the background color should be set
+     * @param humidity the humidity in percent
+     */
     private void setHumidityBackground(JLabel label, int humidity) {
         if(humidity <= 25) {
                 label.setBackground(new Color(204, 230, 255)); //light-light-Blue

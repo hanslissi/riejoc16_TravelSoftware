@@ -34,6 +34,10 @@ public class WeatherBasicInformation {
         return description;
     }
     
+    /**
+     * Loads Icon from the internet
+     * @return ImageIcon which was found. Null if nothing was found.
+     */
     public ImageIcon getIcon() {
         if(imageIcon == null) {
             try{

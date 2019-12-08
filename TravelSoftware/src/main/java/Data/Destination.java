@@ -7,7 +7,7 @@ package Data;
 
 
 /**
- *
+ * Class to store weather information
  * @author johannesriedmueller
  */
 public class Destination {
