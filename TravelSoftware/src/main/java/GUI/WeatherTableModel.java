@@ -9,6 +9,7 @@ import Data.Destination;
 import java.util.ArrayList;
 import javax.swing.table.AbstractTableModel;
 import java.lang.IllegalArgumentException;
+import javax.swing.ImageIcon;
 
 /**
  *
@@ -67,6 +68,10 @@ public class WeatherTableModel extends AbstractTableModel {
         return destinations;
     }
     
+    public Destination getDestinationAt(int index) {
+        return destinations.get(index);
+    }
+    
     public String getCityNameAt(int idx) {
         return destinations.get(idx).getCityName();
     }
@@ -113,7 +118,15 @@ public class WeatherTableModel extends AbstractTableModel {
 
     @Override
     public Object getValueAt(int rowIndex, int columnIndex) {
-        return destinations.get(rowIndex);
+        switch(columnIndex) {
+            case 0: return destinations.get(rowIndex).getCityName(); 
+            case 1: return destinations.get(rowIndex).getWeatherInfo().getPressure(); 
+            case 2: return destinations.get(rowIndex).getWeatherInfo().getHumidity(); 
+            case 3: return destinations.get(rowIndex).getWeatherInfo().getTemp(); 
+            case 4: return destinations.get(rowIndex).getWeatherBasicInfo().getIcon(); 
+            case 5: return destinations.get(rowIndex).getWeatherBasicInfo().getDescription();
+            default: return null;
+        }
     }
 
     @Override
@@ -121,5 +134,16 @@ public class WeatherTableModel extends AbstractTableModel {
         return colnames[column];
     }
 
-
+    @Override
+    public Class<?> getColumnClass(int columnIndex) {
+        switch(columnIndex) {
+            case 0: return String.class;
+            case 1: return Integer.class;
+            case 2: return Integer.class;
+            case 3: return Float.class;
+            case 4: return ImageIcon.class;
+            case 5: return String.class;
+            default: return null;
+        }
+    }
 }

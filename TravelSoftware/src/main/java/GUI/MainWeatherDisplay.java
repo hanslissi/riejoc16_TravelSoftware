@@ -45,6 +45,7 @@ public class MainWeatherDisplay extends javax.swing.JFrame {
         taWeather.setModel(weatherModel);
         taWeather.setRowHeight(50);
         taWeather.getTableHeader().setReorderingAllowed(false);
+        taWeather.setAutoCreateRowSorter(true);
         taWeather.setDefaultRenderer(Object.class, new WeatherTableCellRenderer());
     }
 
@@ -187,9 +188,11 @@ public class MainWeatherDisplay extends javax.swing.JFrame {
         pack();
     }// </editor-fold>//GEN-END:initComponents
     /**
-     * Makes API call to get weather from it and adds it to the table.
-     * If it doesn't find the city it will display a message.
-     * @param cityName The name of the city of which the weather should be loaded.
+     * Makes API call to get weather from it and adds it to the table. If it
+     * doesn't find the city it will display a message.
+     *
+     * @param cityName The name of the city of which the weather should be
+     * loaded.
      */
     private void addCity(String cityName) {
         Response response = APIClass.getInstance().getTodaysWeatherOf(cityName);
@@ -205,8 +208,8 @@ public class MainWeatherDisplay extends javax.swing.JFrame {
     }
 
     /**
-     * Saves the destination which are currently in the list. 
-     * It saves it in the /xml/destination.xml.
+     * Saves the destination which are currently in the list. It saves it in the
+     * /xml/destination.xml.
      */
     private void saveDestinations() {
         try {
@@ -219,6 +222,7 @@ public class MainWeatherDisplay extends javax.swing.JFrame {
 
     /**
      * Loads Weather for specific date.
+     *
      * @param destination The Destination of which the weather should be loaded
      * @param travelDay The day of which the weather should be loaded
      * @return a Destination with all necessary weather data.
@@ -239,12 +243,15 @@ public class MainWeatherDisplay extends javax.swing.JFrame {
     }
 
     /**
-     * Gets the weather from a list of hourly forecasts and picks the one at 12:00.
-     * If there is no entry for 12:00 on the given day it picks the firs one it finds.
-     * @param forecastInfos list of hourly forecast infos 
+     * Gets the weather from a list of hourly forecasts and picks the one at
+     * 12:00. If there is no entry for 12:00 on the given day it picks the firs
+     * one it finds.
+     *
+     * @param forecastInfos list of hourly forecast infos
      * @param travelDate The day of which the weather is needed.
      * @param cityName The city name
-     * @return The destination with the necessary Weather information. returns null if it doesn't find the day given.
+     * @return The destination with the necessary Weather information. returns
+     * null if it doesn't find the day given.
      */
     private Destination getWeatherOfDate(List<ForecastInformation> forecastInfos, LocalDate travelDate, String cityName) {
         int idxOfFirst = -1;
@@ -256,7 +263,7 @@ public class MainWeatherDisplay extends javax.swing.JFrame {
                 }
             }
         }
-        if(idxOfFirst != -1) {
+        if (idxOfFirst != -1) {
             return new Destination(cityName, forecastInfos.get(idxOfFirst).getWeatherInfo(), forecastInfos.get(idxOfFirst).getWeatherBasicInfo());
         }
         return null;
@@ -288,38 +295,30 @@ public class MainWeatherDisplay extends javax.swing.JFrame {
     }//GEN-LAST:event_btPlanActionPerformed
 
     private void miEditActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_miEditActionPerformed
-        int[] selectedIndices = taWeather.getSelectedRows();
-        if (selectedIndices.length == 1) {
-            String cityName = JOptionPane.showInputDialog("Name of city:");
-            if (cityName != null) {
-                Response response = APIClass.getInstance().getTodaysWeatherOf(cityName);
-                if (APIClass.getInstance().httpResponseIsOk(response)) {
-                    String responseString = response.readEntity(String.class);
-                    Gson gson = new Gson();
+        int row = taWeather.getRowSorter().convertRowIndexToModel(taWeather.getSelectedRow());
+        String cityName = JOptionPane.showInputDialog("Name of city:");
+        if (cityName != null) {
+            Response response = APIClass.getInstance().getTodaysWeatherOf(cityName);
+            if (APIClass.getInstance().httpResponseIsOk(response)) {
+                String responseString = response.readEntity(String.class);
+                Gson gson = new Gson();
 
-                    Destination destination = gson.fromJson(responseString, Destination.class);
-                    destination.setCityName(cityName);
-                    try {
-                        weatherModel.edit(destination, selectedIndices[0]);
-                    } catch (IllegalArgumentException ex) {
-                        JOptionPane.showMessageDialog(null, "Index wrong!");
-                    }
-                } else {
-                    JOptionPane.showMessageDialog(null, "City not found...");
+                Destination destination = gson.fromJson(responseString, Destination.class);
+                destination.setCityName(cityName);
+                try {
+                    weatherModel.edit(destination, row);
+                } catch (IllegalArgumentException ex) {
+                    JOptionPane.showMessageDialog(null, "Index wrong!");
                 }
+            } else {
+                JOptionPane.showMessageDialog(null, "City not found...");
             }
-        } else {
-            JOptionPane.showMessageDialog(null, "You have to select one entry.");
         }
     }//GEN-LAST:event_miEditActionPerformed
 
     private void miDeleteActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_miDeleteActionPerformed
-        int[] selectedIndices = taWeather.getSelectedRows();
-        if (selectedIndices.length == 1) {
-            weatherModel.remove(selectedIndices[0]);
-        } else {
-            JOptionPane.showMessageDialog(null, "You have to select one entry.");
-        }
+        int row = taWeather.getRowSorter().convertRowIndexToModel(taWeather.getSelectedRow());
+        weatherModel.remove(row);
     }//GEN-LAST:event_miDeleteActionPerformed
 
     private void miSaveActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_miSaveActionPerformed
@@ -345,7 +344,8 @@ public class MainWeatherDisplay extends javax.swing.JFrame {
 
     private void taWeatherMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_taWeatherMouseClicked
         if (evt.getClickCount() == 2) {
-            Destination selectedDest = (Destination) weatherModel.getValueAt(taWeather.getSelectedRow(), 0);
+            int row = taWeather.getRowSorter().convertRowIndexToModel(taWeather.getSelectedRow());
+            Destination selectedDest = (Destination) weatherModel.getDestinationAt(row);
             WeatherForecast forecast = new WeatherForecast(selectedDest);
             forecast.setVisible(true);
         }
@@ -366,6 +366,11 @@ public class MainWeatherDisplay extends javax.swing.JFrame {
     private void miCompareActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_miCompareActionPerformed
         int[] selectedIndices = taWeather.getSelectedRows();
         if (selectedIndices.length > 1) {
+            int[] realInices = new int[selectedIndices.length];
+            for (int i = 0; i < selectedIndices.length; i++) {
+                int row = taWeather.getRowSorter().convertRowIndexToModel(selectedIndices[i]);
+                realInices[i] = row;
+            }
             WeatherComparisonDialog dialog = new WeatherComparisonDialog(this, true);
             dialog.setVisible(true);
             if (dialog.isOk()) {
@@ -377,7 +382,7 @@ public class MainWeatherDisplay extends javax.swing.JFrame {
                         destinationComps.add(loadWeatherForSpecificDate(destination, dateChosen));
                     }
                 } else {
-                    destinationComps = weatherModel.getDestinations(selectedIndices);
+                    destinationComps = weatherModel.getDestinations(realInices);
                 }
                 JOptionPane.showMessageDialog(null, "The best destination is " + DestinationComparer.getBestDestination(destinationComps, chosenComparer));
             }

@@ -9,6 +9,7 @@ import Data.Destination;
 import Data.WeatherInformation;
 import java.awt.Color;
 import java.awt.Component;
+import javax.swing.ImageIcon;
 import javax.swing.JLabel;
 import javax.swing.JTable;
 import javax.swing.table.TableCellRenderer;
@@ -30,30 +31,28 @@ public class WeatherTableCellRenderer implements TableCellRenderer {
         }
 
         if (value != null) {
-            Destination dest = (Destination) value;
             if (column == 4) {
-                label.setIcon(dest.getWeatherBasicInfo().getIcon());
+                label.setIcon((ImageIcon) value);
             } else {
-                WeatherInformation weatherInfo = dest.getWeatherInfo();
                 switch (column) {
                     case 0:
-                        label.setText(dest.getCityName());
+                        label.setText((String) value);
                         break;
                     case 1:
-                        label.setText(weatherInfo.getPressure() + " mBar");
+                        label.setText((int) value + " mBar");
                         break;
                     case 2:
-                        label.setText(weatherInfo.getHumidity() + " %");
-                        int humidity = dest.getWeatherInfo().getHumidity();
+                        int humidity = (int) value;
+                        label.setText(humidity + " %");
                         setHumidityBackground(label, humidity);
                         break;
                     case 3:
-                        label.setText(String.format("%.2f °C",weatherInfo.getTemp()));
-                        float temp = dest.getWeatherInfo().getTemp();
+                        float temp = (float) value;
+                        label.setText(String.format("%.2f °C", temp));
                         setTempBackground(label, temp);
                         break;
                     case 5:
-                        label.setText(dest.getWeatherBasicInfo().getDescription());
+                        label.setText((String) value);
                         break;
                     default:
                         label.setText("???");
