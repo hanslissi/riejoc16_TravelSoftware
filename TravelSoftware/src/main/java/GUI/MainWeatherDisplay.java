@@ -212,10 +212,8 @@ public class MainWeatherDisplay extends javax.swing.JFrame {
         try {
             XMLAccess access = XMLAccess.getInstance();
             access.persistDestinations(weatherModel.getDestinations());
-        } catch (IOException ex) {
-            Logger.getLogger(MainWeatherDisplay.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (JDOMException ex) {
-            Logger.getLogger(MainWeatherDisplay.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (Exception ex) {
+            JOptionPane.showMessageDialog(null, "Not able to save...");
         }
     }
 
@@ -301,7 +299,11 @@ public class MainWeatherDisplay extends javax.swing.JFrame {
 
                     Destination destination = gson.fromJson(responseString, Destination.class);
                     destination.setCityName(cityName);
-                    weatherModel.edit(destination, selectedIndices[0]);
+                    try {
+                        weatherModel.edit(destination, selectedIndices[0]);
+                    } catch (IllegalArgumentException ex) {
+                        JOptionPane.showMessageDialog(null, "Index wrong!");
+                    }
                 } else {
                     JOptionPane.showMessageDialog(null, "City not found...");
                 }

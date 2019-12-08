@@ -5,7 +5,6 @@
  */
 package API;
 
-import javax.swing.ImageIcon;
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.client.WebTarget;
@@ -19,10 +18,10 @@ import javax.ws.rs.core.Response;
 public class APIClass {
 
     private static APIClass instance;
-    private static String URI = "https://api.openweathermap.org/data/2.5/";
-    private static String PATH_WEATHER = "weather";
-    private static String PATH_FORECAST = "forecast";
-    private static String APPID = "bf9ce9d4ceaa0426b362345a33429a80";
+    private static final String URI = "https://api.openweathermap.org/data/2.5/";
+    private static final String PATH_WEATHER = "weather";
+    private static final String PATH_FORECAST = "forecast";
+    private static final String APPID = "bf9ce9d4ceaa0426b362345a33429a80";
     private static Client client;
     private static WebTarget targetWeather;
     private static WebTarget targetForecast;

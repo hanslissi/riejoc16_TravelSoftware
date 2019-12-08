@@ -8,6 +8,7 @@ package GUI;
 import Data.Destination;
 import java.util.ArrayList;
 import javax.swing.table.AbstractTableModel;
+import java.lang.IllegalArgumentException;
 
 /**
  *
@@ -39,9 +40,13 @@ public class WeatherTableModel extends AbstractTableModel {
      * @param index Index which should be 'replaces'
      */
     public void edit(Destination destination, int index) {
-        destinations.remove(index);
-        destinations.add(index, destination);
-        fireTableDataChanged();
+        try{
+            destinations.remove(index);
+            destinations.add(index, destination);
+            fireTableDataChanged();
+        } catch (Exception ex) {
+            throw new IllegalArgumentException();
+        }
     }
     
     /**
