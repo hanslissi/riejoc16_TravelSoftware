@@ -283,7 +283,7 @@ public class MainWeatherDisplay extends javax.swing.JFrame {
         if (dialog.isOk()) {
             travelDay = dialog.getDayChosen();
             laDate.setText(travelDay.format(dtf));
-            if (destinationBuffer.size() > 0) {
+            if (destinationBuffer.isEmpty()) {
                 destinationBuffer = weatherModel.getAllDestinations();
             }
             weatherModel.clearAll();
